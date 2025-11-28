@@ -1,4 +1,7 @@
 from datetime import datetime
+from record import Record
+from rol import Rol
+
 
 class Member:
     """
@@ -8,8 +11,9 @@ class Member:
     telegram_id: str
     username: str
     name: str
-    rol: str
+    rol: Rol
     status: str
+    record: Record | None
     joined_at: datetime
 
     def __init__(
@@ -17,8 +21,9 @@ class Member:
         telegram_id: str,
         username: str,
         name: str,
-        rol: str,
+        rol: Rol,
         status: str,
+        record: Record | None = None,
         joined_at: datetime | None = None,
     ):
         """Constructor de la clase miembro
@@ -27,8 +32,9 @@ class Member:
             telegram_id (str):
             username (str):
             name (str):
-            rol (str):
+            rol (Rol):
             status (str):
+            record: (Recoerd):
             joined_at (datetime | None, optional): En caso de ser None se toma el valor de datetime.now(). Defaults to None.
         """
         self.telegram_id = telegram_id
@@ -36,6 +42,7 @@ class Member:
         self.name = name
         self.rol = rol
         self.status = status
+        self.record = record
         self.joined_at = joined_at if joined_at else datetime.now()
 
     def __str__(self) -> str:
@@ -49,8 +56,9 @@ class Member:
             - "telegram_id" (str)
             - "username" (str)
             - "name" (str)
-            - "rol" (str)
+            - "rol" (Rol)
             - "status" (str)
+            - "record" (Rrecord)
             - "joined_at": string en formato ISO
         """
         return {
@@ -59,6 +67,7 @@ class Member:
             "name": self.name,
             "rol": self.rol,
             "status": self.status,
+            "record": self.record,
             "joined_at": self.joined_at.isoformat(),
         }
 
@@ -71,8 +80,9 @@ class Member:
                 - "telegram_id" (str)
                 - "username" (str)
                 - "name" (str)
-                - "rol" (str)
+                - "rol" (Rol)
                 - "status" (str)
+                - "record" (Record)
                 - "joined_at": string en formato ISO
 
 
@@ -85,5 +95,6 @@ class Member:
             name=data["name"],
             rol=data["rol"],
             status=data["status"],
+            record=data["record"],
             joined_at=datetime.fromisoformat(data["joined_at"]),
         )

@@ -19,12 +19,17 @@ class Event:
     
     def to_dict(self)->dict:
         dictionary = {
-            "year": self.date.year,
-            "month": self.date.month,
-            "day": self.date.day,
-            "hour": self.date.hour,
-            "minutes": self.date.minute
+            "id": self.id,
+            "title": self.title,
+            "description": self.description,
+            "date": self.date.isoformat(),
+            "location": self.location
         }
         return dictionary
+    
+    
+        
+        
+        
     
         

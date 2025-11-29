@@ -1,5 +1,4 @@
 from datetime import datetime
-from models import record
 from record import Record
 from rol import Rol
 
@@ -35,7 +34,7 @@ class Member:
             name (str):
             rol (Rol):
             status (str):
-            record: (Recoerd):
+            record: (Record):
             joined_at (datetime | None, optional): En caso de ser None se toma el valor de datetime.now(). Defaults to None.
         """
         self.telegram_id = telegram_id
@@ -59,7 +58,7 @@ class Member:
             - "name" (str)
             - "rol" (Rol)
             - "status" (str)
-            - "record" (Rrecord | None)
+            - "record" (Record | None)
             - "joined_at": string en formato ISO
         """
         return {

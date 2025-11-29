@@ -1,3 +1,4 @@
+from src.logic.commands import clean_command
 class BotRol:
     key: str
     name: str
@@ -8,10 +9,15 @@ class BotRol:
         self.key = key
         self.name = name
         self.hierarchy = hierarchy
-
-        for command in allowed_commands:
-            if command[0] == '/':
-                raise Exception(f'Los comandos del BotRol "{key}, {name}" que se intento crear, no pueden empezar por "/", como es el caso de {command}')
-
-        self.allowed_commands = allowed_commands
+        self.allowed_commands = clean_command(allowed_commands) 
     
+    def __str__(self) -> str:
+        return self.name
+    
+    def can_access_command(self, command: str) -> bool:
+        comm = clean_command(command)[0]
+
+        if comm in self.allowed_commands:
+            return True
+        
+        return False

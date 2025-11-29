@@ -1,6 +1,6 @@
 from datetime import datetime
-from record import Record
-from rol import Rol
+from .record import Record
+from .rol import Rol
 
 
 class Member:

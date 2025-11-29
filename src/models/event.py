@@ -14,10 +14,10 @@ class Event:
         self.date = date
         self.location = location
         
-    def __str__(self)->str:
+    def __str__(self)-> str:
         return self.title
     
-    def to_dict(self)->dict:
+    def to_dict(self)-> dict:
         dictionary = {
             "id": self.id,
             "title": self.title,
@@ -28,7 +28,7 @@ class Event:
         return dictionary
     
     @classmethod
-    def from_dict(cls, data:dict)-> Event:
+    def from_dict(cls, data:dict)-> "Event":
         return cls(
            id=data["id"],
            title=data["title"],
@@ -37,10 +37,26 @@ class Event:
            location=data["location"] 
         )
         
-    def is_upcoming(self)->bool:
+    def is_upcoming(self)-> bool:
         return self.date > datetime.now()
     
-    
+    def format_date(self) -> str:
+        days = [
+            "Lunes", "Martes", "Miércoles", "Jueves",
+            "Viernes", "Sábado", "Domingo"
+        ]
+
+        months = [
+            "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+        ]
+        
+        day = days[self.date.weekday()]
+        month = months[self.date.month - 1]
+        
+        return self.date.strftime(f"{day} %d de {month}, %I:%M %p")
+
+
     
     
         

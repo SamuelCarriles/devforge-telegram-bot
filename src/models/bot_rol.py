@@ -21,3 +21,21 @@ class BotRol:
             return True
         
         return False
+    
+    def add_command(self, command: str) -> bool:
+        comm = clean_command(command)[0]
+
+        if comm in self.allowed_commands:
+            return True
+        
+        self.allowed_commands.append(comm)
+        return True
+    
+    def remove_command(self, command: str) -> bool:
+        comm = clean_command(command)[0]
+
+        if not comm in self.allowed_commands:
+            return True
+
+        self.allowed_commands.remove(comm)
+        return True

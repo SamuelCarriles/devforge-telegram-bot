@@ -1,5 +1,5 @@
 from datetime import datetime
-class Resource():
+class Resource:
     id: int
     title: str
     url: str
@@ -12,7 +12,7 @@ class Resource():
         self.title = title
         self.url = url
         self.category = added_by
-        if self.added_at == None:
+        if not self.added_at:
             self.added_at = datetime.now()
         else:
             self.added_at = added_at
@@ -32,7 +32,7 @@ class Resource():
         return data
     
     @classmethod    
-    def from_dict(cls, data: dict) -> Resource:
+    def from_dict(cls, data: dict):
         dato: Resource
         dato = cls(data["id"], 
                    data["title"], 
@@ -43,5 +43,5 @@ class Resource():
         return dato
     
     def format_link(self) -> str:
-        return (f"[{self.title()}]({self.url})")
+        return (f"[{self.title}]({self.url})")
     

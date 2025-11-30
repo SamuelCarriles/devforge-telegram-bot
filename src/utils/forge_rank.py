@@ -13,7 +13,7 @@ class ForgeRank(Enum):
   FORGELORD_II = (10, "Forgelord II", 2500)
   FORGELORD_III = (11, "Forgelord III", 3000)
   FORGELORD_IV = (12, "Forgelord IV", 3500)
-  MASTER_ETERNAL = (13, "Master Eternal", 4000)
+  MASTER_ETERNAL = (13, "Master of Eternal Forge", 4000)
   
   def __init__(self, level: int,display_name: str, min_score: int):
     self.level = level

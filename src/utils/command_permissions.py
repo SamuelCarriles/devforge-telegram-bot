@@ -1,8 +1,8 @@
 COMMAND_ALLOWLIST = {
     # Comandos de Guest (Todos + Miembros + Admin)
-    "ayuda": ["everyone", "member", "admin"],
-    "start": ["everyone", "member", "admin"],
-    "sobre": ["everyone", "member", "admin"],
+    "ayuda": ["guest", "member", "admin"],
+    "start": ["guest", "member", "admin"],
+    "sobre": ["guest", "member", "admin"],
 
     # Comandos de Member (Miembros + Admin)
     "proxima_sesion": ["member", "admin"],

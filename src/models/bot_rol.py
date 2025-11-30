@@ -58,5 +58,5 @@ class Guest(BotRol):
     def __init__(self) -> None:
         super().__init__(
             key='guest', 
-            name='Miembro', 
+            name='Invitado', 
             hierarchy=1)

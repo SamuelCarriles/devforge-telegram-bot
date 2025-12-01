@@ -1,3 +1,5 @@
+from typing import Self
+
 class DevRole:
     key: str
     name: str
@@ -12,17 +14,16 @@ class DevRole:
         return f"{self.icon} {self.name}"
     
     def to_dict(self) -> dict:
-        dictionary = {
+        return {
             "key": self.key,
             "name": self.name,
             "icon": self.icon
         }
-        return dictionary
+        
     
     @classmethod
-    def from_dict(cls, data: dict) -> "DevRole":
-        Dev = cls(**data)
-        return Dev
+    def from_dict(cls, data: dict) -> Self:
+        return cls(**data)
     
 class Backend(DevRole):
     def __init__(self):

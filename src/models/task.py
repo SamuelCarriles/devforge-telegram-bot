@@ -1,21 +1,296 @@
-from datetime import datetime
+import uuid
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional
+from enum import Enum
+
+
+class TaskType(Enum):
+    CUSTOM = "CUSTOM"
+    ISSUE = "ISSUE"
+    PULL_REQUEST = "PULL_REQUEST"
+    REVIEW = "REVIEW"
+    DOCUMENTATION = "DOCUMENTATION"
+
+
+class TaskStatus(Enum):
+    PENDING = "PENDING"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
+    CANCELLED = "CANCELLED"
+    OVERDUE = "OVERDUE"
+
+
+class IssueDifficulty:
+    def __init__(self, name: str, display_name: str, points: int):
+        self.name = name
+        self.display_name = display_name
+        self.points = points
+
+
+EASY = IssueDifficulty("EASY", "Fácil", 10)
+MEDIUM = IssueDifficulty("MEDIUM", "Medio", 25)
+HARD = IssueDifficulty("HARD", "Difícil", 50)
+
 
 class Task:
- 
- id: int
- title: str
- description: str
- due_date: datetime
- completed: bool
- create_at: datetime
- completed_at: datetime
+    id: uuid.UUID
+    title: str
+    description: Optional[str]
+    task_type: TaskType
+    assigned_to: str
+    created_by: str
+    project_url: Optional[str]
+    github_url: Optional[str]
+    github_number: Optional[int]
+    difficulty: IssueDifficulty
+    points_reward: int
+    status: TaskStatus
+    due_date: Optional[datetime]
+    created_at: datetime
+    started_at: Optional[datetime]
+    completed_at: Optional[datetime]
+    notes: Optional[List[Dict]]
 
- def __init__(self, id, title, description=None, due_date=None, completed=False, created_at=None, completed_at=None):
-   self.id=id
-   self.title=title
-   self.description=description
-   self.due_date=due_date
-   self.completed=completed
-   self.create_at=completed_at
-   self.completed_at=completed_at
-  
+    def __init__(
+        self,
+        title: str,
+        assigned_to: str,
+        created_by: str,
+        difficulty: IssueDifficulty,
+        task_type: TaskType = TaskType.CUSTOM,
+        description: Optional[str] = None,
+        project_url: Optional[str] = None,
+        github_url: Optional[str] = None,
+        github_number: Optional[int] = None,
+        due_date: Optional[datetime] = None,
+        created_at: Optional[datetime] = None,
+        status: TaskStatus = TaskStatus.PENDING,
+        started_at: Optional[datetime] = None,
+        completed_at: Optional[datetime] = None,
+        notes: Optional[List[Dict]] = None,
+        task_id: Optional[uuid.UUID] = None,
+    ):
+        # informacion basica
+        self.id = task_id or uuid.uuid4()
+        self.title = title
+        self.description = description
+        self.task_type = task_type
+        # Asigancion
+        self.assigned_to = assigned_to
+        self.created_by = created_by
+        self.project_url = project_url
+        # Github
+        self.github_url = github_url
+        self.github_number = github_number
+        # Dificultad y puntos
+        self.difficulty = difficulty
+        self.points_reward = difficulty.points
+        # Fechas y estado
+        self.status = status
+        self.due_date = due_date
+        self.created_at = created_at or datetime.now()
+        self.started_at = started_at
+        self.completed_at = completed_at
+        # Metadata
+        self.notes = notes or []
+
+    def __str__(self) -> str:
+        return f"[{self.difficulty.display_name} ~ {self.status.value}] {self.title}"
+
+    def start(self) -> bool:
+        if self.status == TaskStatus.PENDING:
+            self.status = TaskStatus.IN_PROGRESS
+            self.started_at = datetime.now()
+            return True
+        return False
+
+    def complete(self) -> Dict:
+        """Completa la tarea y retorna información sobre la completación"""
+        if self.status in [TaskStatus.COMPLETED, TaskStatus.CANCELLED]:
+            return {
+                "success": False,
+                "was_on_time": False,
+                "points_earned": 0,
+                "task_type": self.task_type,
+            }
+
+        # Marcar como completada
+        self.status = TaskStatus.COMPLETED
+        self.completed_at = datetime.now()
+
+        # Verificar si fue a tiempo
+        was_on_time = True
+        if self.due_date:
+            was_on_time = self.completed_at <= self.due_date
+
+        return {
+            "success": True,
+            "was_on_time": was_on_time,
+            "points_earned": self.points_reward,
+            "task_type": self.task_type,
+        }
+
+    def cancel(self, reason: str = "") -> bool:
+        """Cancela la tarea con una razón opcional"""
+        if self.status in [TaskStatus.COMPLETED, TaskStatus.CANCELLED]:
+            return False
+
+        self.status = TaskStatus.CANCELLED
+        if reason:
+            self.add_note(f"Tarea cancelada: {reason}")
+        return True
+
+    def is_overdue(self) -> bool:
+        """Verifica si la tarea está vencida"""
+        if not self.due_date:
+            return False
+
+        if self.status in [TaskStatus.COMPLETED, TaskStatus.CANCELLED]:
+            return False
+
+        return datetime.now() > self.due_date
+
+    def update_status_if_overdue(self) -> bool:
+        """Actualiza el estado a OVERDUE si corresponde"""
+        if self.is_overdue() and self.status in [
+            TaskStatus.PENDING,
+            TaskStatus.IN_PROGRESS,
+        ]:
+            self.status = TaskStatus.OVERDUE
+            return True
+        return False
+
+    def get_time_remaining(self) -> Dict:
+        """Calcula el tiempo restante hasta la fecha límite"""
+        if not self.due_date:
+            return {
+                "has_deadline": False,
+                "is_overdue": None,
+                "days": None,
+                "hours": None,
+                "human_readable": "Sin fecha límite",
+            }
+
+        now = datetime.now()
+        difference = self.due_date - now
+        is_overdue = difference.total_seconds() < 0
+
+        # Calcular días y horas
+        total_seconds = abs(difference.total_seconds())
+        days = int(total_seconds // 86400)
+        hours = int((total_seconds % 86400) // 3600)
+
+        # Crear mensaje legible
+        if is_overdue:
+            if days > 0:
+                human_readable = f"Vencida hace {days} día{'s' if days != 1 else ''}"
+                if hours > 0:
+                    human_readable += f", {hours} hora{'s' if hours != 1 else ''}"
+            else:
+                human_readable = f"Vencida hace {hours} hora{'s' if hours != 1 else ''}"
+        else:
+            if days > 0:
+                human_readable = f"{days} día{'s' if days != 1 else ''}"
+                if hours > 0:
+                    human_readable += f", {hours} hora{'s' if hours != 1 else ''}"
+            else:
+                human_readable = f"{hours} hora{'s' if hours != 1 else ''}"
+
+        return {
+            "has_deadline": True,
+            "is_overdue": is_overdue,
+            "days": -days if is_overdue else days,
+            "hours": hours,
+            "human_readable": human_readable,
+        }
+
+    def add_note(self, note: str) -> None:
+        """Añade una nota con timestamp a la tarea"""
+        if self.notes is None:
+            self.notes = []
+
+        self.notes.append({"date": datetime.now().isoformat(), "content": note})
+
+    # Propiedades calculadas
+    @property
+    def is_completed(self) -> bool:
+        """Verifica si la tarea está completada"""
+        return self.status == TaskStatus.COMPLETED
+
+    @property
+    def is_active(self) -> bool:
+        """Verifica si la tarea está activa (pending o in progress)"""
+        return self.status in [TaskStatus.PENDING, TaskStatus.IN_PROGRESS]
+
+    @property
+    def days_since_created(self) -> int:
+        """Calcula días desde que se creó la tarea"""
+        delta = datetime.now() - self.created_at
+        return delta.days
+
+    def to_dict(self) -> Dict:
+        """Serializa la tarea a diccionario para guardar en BD"""
+        return {
+            "id": str(self.id),
+            "title": self.title,
+            "description": self.description,
+            "task_type": self.task_type.value,
+            "assigned_to": self.assigned_to,
+            "created_by": self.created_by,
+            "project_url": self.project_url,
+            "github_url": self.github_url,
+            "github_number": self.github_number,
+            "difficulty": self.difficulty.name,  # Guardar el nombre de la dificultad
+            "points_reward": self.points_reward,
+            "status": self.status.value,
+            "due_date": self.due_date.isoformat() if self.due_date else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "started_at": self.started_at.isoformat() if self.started_at else None,
+            "completed_at": (
+                self.completed_at.isoformat() if self.completed_at else None
+            ),
+            "notes": self.notes,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> "Task":
+        """Crea una instancia de Task desde un diccionario"""
+        # Mapeo de dificultades (deberías tenerlas definidas en algún lugar)
+        difficulty_map = {"EASY": EASY, "MEDIUM": MEDIUM, "HARD": HARD}
+
+        # Reconstruir fechas desde strings ISO
+        due_date = None
+        if data.get("due_date"):
+            due_date = datetime.fromisoformat(data["due_date"])
+
+        created_at = None
+        if data.get("created_at"):
+            created_at = datetime.fromisoformat(data["created_at"])
+
+        started_at = None
+        if data.get("started_at"):
+            started_at = datetime.fromisoformat(data["started_at"])
+
+        completed_at = None
+        if data.get("completed_at"):
+            completed_at = datetime.fromisoformat(data["completed_at"])
+
+        # Crear instancia
+        return cls(
+            title=data["title"],
+            assigned_to=data["assigned_to"],
+            created_by=data["created_by"],
+            difficulty=difficulty_map.get(data["difficulty"], MEDIUM),
+            task_type=TaskType(data.get("task_type", "CUSTOM")),
+            description=data.get("description"),
+            project_url=data.get("project_url"),
+            github_url=data.get("github_url"),
+            github_number=data.get("github_number"),
+            due_date=due_date,
+            created_at=created_at,
+            status=TaskStatus(data.get("status", "PENDING")),
+            started_at=started_at,
+            completed_at=completed_at,
+            notes=data.get("notes", []),
+            task_id=uuid.UUID(data["id"]) if "id" in data else None,
+        )

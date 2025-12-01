@@ -24,7 +24,8 @@ class ForgeRank(Enum):
 
     @classmethod
     def get_rank_by_score(cls, score: int) -> Self:
-        for rank in reversed(cls):
+        sorted_ranks = sorted(list(cls), key=lambda r: r.min_score, reverse=True)
+        for rank in sorted_ranks:
             if score >= rank.min_score:
                 return rank
         return cls.ORE

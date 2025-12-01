@@ -80,10 +80,14 @@ class Record:
             }
         )
         self.last_strike_date = timestamp
+        if self.strikes > 3:
+            self.is_in_good_standing = False
 
     def remove_strike(self, reason: str, details: str = "") -> bool:
         if self.strikes > 0:
             self.strikes -= 1
+            if self.strikes < 3:
+                self.is_in_good_standing = True
             self.strike_history.append(
                 {
                     "timestamp": datetime.now(),

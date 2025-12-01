@@ -57,7 +57,7 @@ class Record:
                     "new_rank": new_rank,
                 }
             )
-            
+
         self.rank = new_rank
 
         return {
@@ -66,3 +66,16 @@ class Record:
             "new_rank": new_rank,
             "points_gained": points,
         }
+
+    def add_strike(self, reason: str, details: str = "") -> None:
+        self.strikes += 1
+        timestamp = datetime.now()
+        self.strike_history.append(
+            {
+                "timestamp": timestamp,
+                "action": "added",
+                "reason": reason,
+                "details": details,
+            }
+        )
+        self.last_strike_date = timestamp

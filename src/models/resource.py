@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Self
 import uuid
 class Resource:
-    id: uuid
+    id: str
     title: str
     url: str
     category: str

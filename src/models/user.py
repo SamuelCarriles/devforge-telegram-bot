@@ -5,9 +5,9 @@ from .dev_role import DevRole
 from typing import Self
 
 
-class Member:
+class User:
     """
-    Clase para representar a los miembros del bot
+    Clase para representar a los usuarios del bot
     """
 
     telegram_id: str
@@ -27,7 +27,7 @@ class Member:
         joined_at: datetime | None = None,
         dev_rol: DevRole | None = None,
     ):
-        """Constructor de la clase miembro
+        """Constructor de la clase User
 
         Args:
             telegram_id (str):
@@ -86,7 +86,7 @@ class Member:
 
 
         Returns:
-            Member: nueva instancia de la clase
+            User: nueva instancia de la clase
         """
         return cls(
             telegram_id=data["telegram_id"],
@@ -99,12 +99,12 @@ class Member:
         )
 
     def have_permission(self, command: str) -> bool:
-        """Comprueba si el miembro tiene permiso de ejecutar un comando
+        """Comprueba si el usuario tiene permiso de ejecutar un comando
 
         Args:
             command (str): El comando que se desea comprobar
 
         Returns:
-            bool: Devuelve `True` o `False` en dependencia de si el miembro tiene permiso o no
+            bool: Devuelve `True` o `False` en dependencia de si el usuario tiene permiso o no
         """
         return self.bot_rol.can_access_command(command)

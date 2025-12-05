@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Dict, List, Any, Self
 from enum import Enum
 from src.utils.issue_difficulty import IssueDifficulty
+from pydantic import BaseModel
 
 
 class TaskType(Enum):
@@ -21,67 +22,30 @@ class TaskStatus(Enum):
     OVERDUE = "OVERDUE"
 
 
-class Task:
+class Task(BaseModel):
+    # informacion basica
     id: str
     title: str
     description: str | None
     task_type: TaskType
+    # Asigancion
     assigned_to: str
     created_by: str
     project_url: str | None
+    # Github
     github_url: str | None
     github_task_number: str | None
+    # Dificultad y puntos
     difficulty: IssueDifficulty
     points_reward: int
+    # Fechas y estado
     status: TaskStatus
     due_date: datetime | None
     created_at: datetime
     started_at: datetime | None
     completed_at: datetime | None
+    # Metadata
     notes: List[Dict[str, Any]] | None
-
-    def __init__(
-        self,
-        title: str,
-        assigned_to: str,
-        created_by: str,
-        difficulty: IssueDifficulty,
-        task_type: TaskType = TaskType.CUSTOM,
-        description: str | None = None,
-        project_url: str | None = None,
-        github_url: str | None = None,
-        github_task_number: int | None = None,
-        due_date: datetime | None = None,
-        created_at: datetime | None = None,
-        status: TaskStatus = TaskStatus.PENDING,
-        started_at: datetime | None = None,
-        completed_at: datetime | None = None,
-        notes: List[Dict] | None = None,
-        task_id: str | None = None,
-    ):
-        # informacion basica
-        self.id = task_id or str(uuid.uuid4())
-        self.title = title
-        self.description = description
-        self.task_type = task_type
-        # Asigancion
-        self.assigned_to = assigned_to
-        self.created_by = created_by
-        self.project_url = project_url
-        # Github
-        self.github_url = github_url
-        self.github_task_number = github_task_number
-        # Dificultad y puntos
-        self.difficulty = difficulty
-        self.points_reward = difficulty.points
-        # Fechas y estado
-        self.status = status
-        self.due_date = due_date
-        self.created_at = created_at or datetime.now()
-        self.started_at = started_at
-        self.completed_at = completed_at
-        # Metadata
-        self.notes = notes or []
 
     def __str__(self) -> str:
         return f"[{self.difficulty.display_name} ~ {self.status.value}] {self.title}"
@@ -207,65 +171,3 @@ class Task:
         """Calcula días desde que se creó la tarea"""
         delta = datetime.now() - self.created_at
         return delta.days
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Serializa la tarea a diccionario para guardar en BD"""
-        return {
-            "id": self.id,
-            "title": self.title,
-            "description": self.description,
-            "task_type": self.task_type.value,
-            "assigned_to": self.assigned_to,
-            "created_by": self.created_by,
-            "project_url": self.project_url,
-            "github_url": self.github_url,
-            "github_task_number": self.github_task_number,
-            "difficulty": self.difficulty.display_name,
-            "points_reward": self.points_reward,
-            "status": self.status.value,
-            "due_date": self.due_date.isoformat() if self.due_date else None,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "started_at": self.started_at.isoformat() if self.started_at else None,
-            "completed_at": (
-                self.completed_at.isoformat() if self.completed_at else None
-            ),
-            "notes": self.notes,
-        }
-
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> Self:
-        """Crea una instancia de Task desde un diccionario"""
-        data_due_date = None
-        if data.get("due_date"):
-            data_due_date = datetime.fromisoformat(data["due_date"])
-
-        data_created_at = None
-        if data.get("created_at"):
-            data_created_at = datetime.fromisoformat(data["created_at"])
-
-        data_started_at = None
-        if data.get("started_at"):
-            data_started_at = datetime.fromisoformat(data["started_at"])
-
-        data_completed_at = None
-        if data.get("completed_at"):
-            data_completed_at = datetime.fromisoformat(data["completed_at"])
-
-        return cls(
-            title=data["title"],
-            assigned_to=data["assigned_to"],
-            created_by=data["created_by"],
-            difficulty=IssueDifficulty.get_difficulty_by_name(data["difficulty"]),
-            task_type=TaskType(data.get("task_type", "CUSTOM")),
-            description=data.get("description"),
-            project_url=data.get("project_url"),
-            github_url=data.get("github_url"),
-            github_task_number=data.get("github_task_number"),
-            due_date=data_due_date,
-            created_at=data_created_at,
-            status=TaskStatus(data.get("status", "PENDING")),
-            started_at=data_started_at,
-            completed_at=data_completed_at,
-            notes=data.get("notes", []),
-            task_id=data["id"],
-        )
